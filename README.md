@@ -1,37 +1,67 @@
 # SiLibrary — Digital Library Database
 
-SiLibrary is an academic relational database design for a digital library information system. The model covers catalog data, members, staff, lending, returns, and late-payment penalties.
+SiLibrary is an academic MySQL database implementation for a digital library information system. It models catalog data, members, staff, borrowing, returns, late-payment penalties, and database access roles.
 
 ## Snapshot
 
 | Item | Detail |
 | --- | --- |
 | Project type | Academic team project — Database Systems |
-| Tooling | MySQL Workbench / relational database design |
-| Scope | ERD, relational model, lending and return relationships |
-| Data model | 8 primary entities with 1:1, 1:N, and M:N relationships |
-| Status | Documentation-first repository |
+| Database | MySQL 8.0+ |
+| Data model | 8 primary entities plus the `buku_penulis` M:N junction table and `log_denda` audit table |
+| SQL features | DDL, DML, stored procedures, triggers, nested query, `JOIN`, and DCL examples |
+| Status | Importable SQL source included |
 
-## System model
+## Database model
 
-The documented model includes `Kategori`, `Penulis`, `Buku`, `Anggota`, `Petugas`, `Peminjaman`, `Pengembalian`, and `Denda`. The book-to-author relationship is represented through the `Buku_Penulis` junction table. Lending links members and staff to borrowing transactions, while returns and penalties extend the flow.
+The primary entities are `kategori`, `penulis`, `buku`, `anggota`, `petugas`, `peminjaman`, `pengembalian`, and `denda`. The book-to-author relationship is handled by `buku_penulis`. A `peminjaman` has zero or one `pengembalian`, and a `pengembalian` can have zero or one `denda`.
 
-## Raffata's contribution
+| Relationship | Cardinality | Implementation |
+| --- | --- | --- |
+| Kategori → Buku | 1:N | `buku.id_kategori` foreign key |
+| Buku ↔ Penulis | M:N | `buku_penulis` junction table |
+| Anggota → Peminjaman | 1:N | `peminjaman.id_anggota` foreign key |
+| Petugas → Peminjaman | 1:N | `peminjaman.id_petugas` foreign key |
+| Peminjaman → Pengembalian | 1:0..1 | `pengembalian.id_peminjaman` unique foreign key |
 
-Raffata contributed to the Entity Relationship Diagram, the relational model, and the project documentation for Chapters 1 and 2. His documented work includes defining entities and attributes, transforming relationships into relational form, recording cardinality, and clarifying business rules for lending and returns.
+## Repository structure
 
-## Concepts practiced
+```text
+sql/
+├── 01_schema_and_seed.sql          # Database, tables, relationships, and sample data
+├── 02_procedures_and_triggers.sql  # 3 procedures and 2 triggers
+├── 03_demo_queries.sql             # Safe learning/demo flow on the seeded database
+└── 04_dcl_examples.sql             # Role examples; edit credentials before use
+```
 
-- Entity Relationship Diagramming with Chen notation
-- Relational model transformation
-- Primary keys, foreign keys, and junction tables
-- Cardinality: 1:1, 1:N, and M:N
-- Database documentation and business-rule communication
+## Import and run
 
-## Code availability
+> `01_schema_and_seed.sql` starts with `DROP DATABASE IF EXISTS silibrary`. Run it only in a local or disposable academic environment.
 
-This public repository currently documents the database design. The original Workbench model and SQL export are not included in this first publication, so no import command or MySQL version is claimed. When source assets are added, this README will be updated with precise import instructions.
+Import the schema and programmable objects in this order:
 
-## Scope note
+```bash
+mysql -u root -p < sql/01_schema_and_seed.sql
+mysql -u root -p silibrary < sql/02_procedures_and_triggers.sql
+mysql -u root -p silibrary < sql/03_demo_queries.sql
+```
 
-This is an academic database-design project. The contribution section deliberately separates Raffata's ERD/model/documentation work from SQL implementation performed by other team members.
+The last command is an optional demonstration. It creates a loan for member 1, marks the seed penalty as paid to trigger an audit entry, borrows a book for member 4 after the penalty is paid, and returns that loan.
+
+## Stored procedures and triggers
+
+| Object | Purpose |
+| --- | --- |
+| `sp_pinjam_buku` | Validates an active member and available stock, creates a loan, and reduces stock. |
+| `sp_kembalikan_buku` | Uses a `JOIN` to process a return, restores stock, and creates a late fee when needed. |
+| `sp_laporan_peminjaman_anggota` | Lists a member's borrowing history and uses a nested query to count total loans. |
+| `before_insert_peminjaman` | Blocks a new loan when the member still has an unpaid penalty. |
+| `after_update_denda` | Writes a row to `log_denda` when a fee changes from unpaid to paid. |
+
+## Access-control examples
+
+`04_dcl_examples.sql` documents two course-aligned roles: `petugas_full` can read and write across the database; `petugas_baca` can only read `buku` and `kategori`. The script contains intentional password placeholders, so change them before executing and do not use the sample credentials in a shared environment.
+
+## Scope and provenance
+
+Raffata's documented contribution to the original team project was the ERD, relational model, and Chapters 1–2 documentation. The original Workbench model and SQL export were unavailable when this repository was published. The current scripts are a clean, importable reconstruction from the supplied report's stated entity attributes, relationships, procedure requirements, trigger rules, and DCL goals. They are therefore presented as a course-aligned implementation rather than the exact original team export.
