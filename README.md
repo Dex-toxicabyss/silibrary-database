@@ -63,3 +63,48 @@ The final demo script is optional and exercises borrowing, returns, penalties, a
 ## Scope and provenance
 
 Raffata's documented contribution to the original team project was the ERD, relational model, and Chapters 1–2 documentation. The current SQL files are presented as a course-aligned, importable reconstruction based on the documented entities, relationships, procedures, triggers, and DCL goals.
+## Entity relationship diagram
+
+```mermaid
+erDiagram
+    KATEGORI ||--o{ BUKU : contains
+    BUKU ||--o{ BUKU_PENULIS : has
+    PENULIS ||--o{ BUKU_PENULIS : writes
+    ANGGOTA ||--o{ PEMINJAMAN : makes
+    PETUGAS ||--o{ PEMINJAMAN : records
+    BUKU ||--o{ PEMINJAMAN : borrowed
+    PEMINJAMAN ||--o| PENGEMBALIAN : has
+    PETUGAS ||--o{ PENGEMBALIAN : processes
+    PENGEMBALIAN ||--o| DENDA : creates
+    DENDA ||--o{ LOG_DENDA : audits
+```
+
+## Portfolio evidence
+
+### Database skills demonstrated
+
+- Relational modeling with primary and foreign keys
+- Many-to-many modeling through a junction table
+- Constraint-based validation
+- Stored procedures for borrowing and returns
+- Triggers for unpaid-fine rules and audit logging
+- Nested queries and joined reporting
+- DCL examples for role-based access
+
+### Validation flow
+
+Import the scripts in order, then run the demo queries against a disposable local MySQL database. The import order and destructive reset warning are documented above.
+
+## Contribution boundary
+
+Raffata's documented contribution to the original team project was the ERD, relational model, and Chapters 1–2 documentation. The current SQL is presented as a course-aligned reconstruction, not as a claim that it is the exact historical team export.
+
+## Limitations
+
+- Sample data and credentials are for local academic demonstration only.
+- `01_schema_and_seed.sql` resets the database and must not be run against production.
+- No application UI or API layer is included.
+
+## Usage policy
+
+No open-source license is included. This repository is published for portfolio and academic reference; reuse should be requested from the author.
