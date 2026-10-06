@@ -105,6 +105,6 @@ Raffata's documented contribution to the original team project was the ERD, rela
 - `01_schema_and_seed.sql` resets the database and must not be run against production.
 - No application UI or API layer is included.
 
-## Usage policy
+## License
 
-No open-source license is included. This repository is published for portfolio and academic reference; reuse should be requested from the author.
+This repository is licensed under the [MIT License](LICENSE). The license applies to the original source and documentation included in this repository. Third-party dependencies, frameworks, fonts, images, and other external materials remain subject to their respective licenses and attribution requirements.
